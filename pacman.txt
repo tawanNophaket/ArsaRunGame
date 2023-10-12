@@ -1,0 +1,197 @@
+{
+	setportrait()
+	//screen
+   	screensize(640,960)
+   	maxsize(0, 0, 640, 960)
+	
+	//state loop
+   	set($state, GO)
+	
+	//enermy
+   	set($en, "boss")
+    set($en2, "boss2")
+    set($en3, "boss3")
+
+	//waypoint
+   	set($maxwp, 3)
+   	int($wp[$maxwp])
+   	set($wp[0], "wp1")
+   	set($wp[1], "wp2")
+   	set($wp[2], "wp3")
+	
+    set($maxwpa, 3)
+   	int($wpa[$maxwp])
+   	set($wpa[0], "wpa1")
+   	set($wpa[1], "wpa2")
+   	set($wpa[2], "wpa3")
+
+	set($maxwpb, 3)
+   	int($wpb[$maxwp])
+   	set($wpb[0], "wpb1")
+   	set($wpb[1], "wpb2")
+   	set($wpb[2], "wpb3")   
+
+   	set($idx, 0)
+	set($idxa, 0)
+	set($idxb, 0)
+
+	int($score,0)
+}function(init)
+
+///////////////////////////////////////////////
+//user
+set($us, "mu")
+set($ox, getposx($us))
+set($oy, getposy($us))
+set($dx, touch(gettouchx_diff))
+set($dy, touch(gettouchy_diff))
+
+//us move
+set($dx, touch(gettouchx))
+set($dy, touch(gettouchy))
+if(touch(down)==true) pos($us,$dx,$dy)
+
+///////////////////////////////////////////////
+
+//get waypoint position
+set($tx, getposxf($wp[$idx],"c"))
+set($ty, getposyf($wp[$idx], "c"))
+
+//get en position
+set($x, getposx($en))
+set($y, getposy($en))
+set($zrot, getzrot($tx, $ty, $x, $y))
+rot($en, 0, 0, -$zrot)
+
+//auto move
+set($sp, "5")
+if($x < $tx) add($x, $sp)
+if($x > $tx) add($x, -$sp)
+if($y < $ty) add($y, $sp)
+if($y > $ty) add($y, -$sp)
+pos($en, $x, $y)
+
+setoffset($x-320, $y-480)
+
+//if en != waypoint, state == GO
+hitlayer($en, $wp[$idx], ifelse($state==GO, add($idx,1),add($idx,-1)))
+
+//looping
+if($idx<0) ifelse($state==GO,set($state,BACK),set($state,GO))
+if($idx>=$maxwp) ifelse($state==GO,set($state,BACK),set($state,GO))
+if($idx<0) set($idx,0)
+if($idx>=$maxwp) set($idx,$maxwp-1)
+
+
+///////////////////////////////////////////////
+
+//get waypoint position
+set($txa, getposxf($wpa[$idxa],"c"))
+set($tya, getposyf($wpa[$idxa], "c"))
+
+//get en position
+set($xa, getposx($en2))
+set($ya, getposy($en2))
+set($zrota, getzrot($txa, $tya, $xa, $ya))
+rot($en2, 0, 0, -$zrota)
+
+//auto move
+set($sp, "5")
+if($xa < $txa) add($xa, $sp)
+if($xa > $txa) add($xa, -$sp)
+if($ya < $tya) add($ya, $sp)
+if($ya > $tya) add($ya, -$sp)
+pos($en2, $xa, $ya)
+
+setoffset($xa-320, $ya-480)
+
+//if en != waypoint, state == GO
+hitlayer($en2, $wpa[$idxa], ifelse($state==GO, add($idxa,1),add($idxa,-1)))
+
+//looping
+if($idxa<0) ifelse($state==GO,set($state,BACK),set($state,GO))
+if($idxa>=$maxwpa) ifelse($state==GO,set($state,BACK),set($state,GO))
+if($idxa<0) set($idxa,0)
+if($idxa>=$maxwpa) set($idxa,$maxwpa-1)
+
+///////////////////////////////////////////////
+
+//get waypoint position
+set($txb, getposxf($wpb[$idxb],"c"))
+set($tyb, getposyf($wpb[$idxb], "c"))
+
+//get en position
+set($xb, getposx($en3))
+set($yb, getposy($en3))
+set($zrotb, getzrot($txb, $tyb, $xb, $yb))
+rot($en3, 0, 0, -$zrotb)
+
+//auto move
+set($sp, "5")
+if($xb < $txb) add($xb, $sp)
+if($xb > $txb) add($xb, -$sp)
+if($yb < $tyb) add($yb, $sp)
+if($yb > $tyb) add($yb, -$sp)
+pos($en3, $xb, $yb)
+
+setoffset($xb-320, $yb-480)
+
+//if en != waypoint, state == GO
+hitlayer($en3, $wpb[$idxb], ifelse($state==GO, add($idxb,1),add($idxb,-1)))
+
+//looping
+if($idxb<0) ifelse($state==GO,set($state,BACK),set($state,GO))
+if($idxb>=$maxwpb) ifelse($state==GO,set($state,BACK),set($state,GO))
+if($idxb<0) set($idxb,0)
+if($idxb>=$maxwpb) set($idxb,$maxwpb-1)
+
+///////////////////////////////////////////////
+
+//us hit en
+hitlayer("mu","boss", psd("Lose Page.psd"))
+
+hitlayer("mu","teleport", psd("Game2.psd"))
+
+{
+        visible(false,null)
+        add($score, 1)
+}function(hit)
+hitlayer("mu","coin",function(hit))
+!isvisible("coin",text(50, 900, "Score: $score"))
+
+set($maxd, 50)
+if($dx > $maxd) set($dx,$maxd)
+if($dy > $maxd) set($dy,$maxd)
+if($dx < -$maxd) set($dx,-$maxd)
+if($dy < -$maxd) set($dy,-$maxd)
+
+
+// collision wall
+hitlayer($us,"wall",function(col))
+
+{
+	set($layer1, $us)
+	set($layer2, getlayername("null"))
+
+	// https://levelup.gitconnected.com/2d-collision-detection-8e50b6b8b5c0
+	// right
+	set($xl1, getposxf($layer1,"r"))
+	set($xl2, getposxf($layer2,"l"))
+	if($xl1 >= $xl2) posx($us,$ox)
+
+	// left
+	set($xl1, getposxf($layer1,"l"))
+	set($xl2, getposxf($layer2,"r"))
+	if($xl1 <= $xl2) posx($us,$ox)
+
+	// top
+	set($yl1, getposyf($layer1,"t"))
+	set($yl2, getposyf($layer2,"b"))
+	if($yl1 <= $yl2) posy($us,$oy)
+
+	// bottom
+	set($yl1, getposyf($layer1,"b"))
+	set($yl2, getposyf($layer2,"t"))
+	if($yl1 >= $yl2) posy($us,$oy)
+}function(col)
+
